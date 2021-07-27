@@ -6,34 +6,21 @@ const ExecutiveModel = require('../models/executiveModel');
 const slugify = require('slugify');
 
 router.get('/:slug?', async (req, res) => {
-    if (!!req.params.slug) {
-        const { slug } = req.params;
-        const theCEO = await ExecutiveModel.getBySlug(slug);
+    if (req.params.slug) {
+        
+    const { slug } = req.params;
+    const executive = await ExecutiveModel.getBySlug(slug);
 
-        res.render('template', {
-            locals: {
-                title: 'CEO Details',
-                ceo: theCEO
-            },
-            partials: {
-                body: 'partials/ceo-details'
-            }
-        });
+    if (executive) {
+        res.json(executive).status(200);
     } else {
-        const ExecData = await ExecutiveModel.getAll();
-
-        res.render('template', {
-            locals: {
-                title: 'Home Page',
-                data: ExecData
-            },
-            partials: {
-                body: 'partials/home'
-            }
-        });
+        res.status(400).send(`No CEO found that matches slug, ${slug}`);
     }
+    } else {
+        const ceos = await ExecutiveModel.getAll();
+        res.json(ceos).status(200);
+    }})
 
-});
 
 router.post('/', async (req, res) => {
     const { ceo_name, ceo_year } = req.body;
@@ -51,7 +38,7 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/delete', async (req, res) => {
-    const {id, ceo_name, slug, ceo_year} = req.body;
+    const { id, ceo_name, slug, ceo_year } = req.body;
     const execToDelete = new ExecutiveModel(id, ceo_name, slug, ceo_year);
 
     const response = await execToDelete.deleteEntry();
